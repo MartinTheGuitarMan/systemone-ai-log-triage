@@ -9,6 +9,12 @@ Design notes:
   success after failures), not alerted line by line. The same idea applies to alarm floods in any monitored system.
 - Calibrate any model threshold on a reviewed sample before acting on its output.
 
+Run on a log file (syslog or ISO timestamps; source = first IPv4 in the line):
+
+```bash
+.venv/bin/python -m log_triage data/OpenSSH_2k.log
+```
+
 ```bash
 uv venv --python 3.12 .venv && uv pip install -r requirements.txt -p .venv/bin/python
 .venv/bin/python -m pytest -q

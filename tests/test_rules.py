@@ -30,7 +30,6 @@ def test_known_noise_is_ignored(line):
     ("Worker (pid:41) was sent SIGKILL! Perhaps out of memory?", "info"),
     ('INFO:     10.0.0.1:1 - "GET /api/musicians HTTP/1.1" 500 Internal Server Error', "info"),
     ("something odd", "error"),
-    ("something odd", "WARNING"),
     ("[CRITICAL] WORKER TIMEOUT (pid:41)", "info"),
 ])
 def test_critical_always_acts(line, level):
@@ -45,3 +44,22 @@ def test_noise_cannot_hide_a_failure():
 
 def test_unknown_is_undecided():
     assert classify_line('INFO:     1.2.3.4:5 - "GET /api/musicians?q=x HTTP/1.1" 200 OK', "info").label is None
+
+
+def test_failed_login_alone_is_watch_not_act():
+    v = classify_line("Dec 10 06:55:48 h sshd[1]: Failed password for root from 1.2.3.4 port 22 ssh2")
+    assert v.label == "watch"
+    assert classify_line("Invalid user admin from 1.2.3.4").label == "watch"
+
+
+def test_break_in_warning_is_act():
+    assert classify_line("reverse mapping checking getaddrinfo for x [1.2.3.4] failed - POSSIBLE BREAK-IN ATTEMPT!").label == "act"
+
+
+def test_ssh_ancillary_noise_ignored():
+    assert classify_line("Received disconnect from 1.2.3.4: 11: Bye Bye [preauth]").label == "ignore"
+    assert classify_line("pam_unix(sshd:auth): check pass; user unknown").label == "ignore"
+
+
+def test_warning_level_is_watch():
+    assert classify_line("something odd", "WARNING").label == "watch"
